@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passwords Game</title>
+    <style>
+        body{ 
+            background-color: #ccc;
+            font-family: sans-serif;
+        }
+
+        #content, #login-form {
+            background-color: white;
+            max-width: 800px;
+            width: 80%;
+            margin: 0px auto;
+            box-shadow: 3px 3px 3px #888;
+            border-radius: 3px;
+            padding: 2rem;
+        }
+
+        #form-input {
+            width: 100%;
+            min-height: 200px;
+        }
+
+        #response {
+            font-family: monospace;
+            padding: 1rem;
+            border: 1px solid #ccc;
+            margin: 1rem auto;
+        }
+
+        #footer {
+            text-align: center;
+            color: #777;
+            margin-top: 2rem;
+        }
+
+        #footer a:link,
+        #footer a:visited,
+        #footer a:hover,
+        #footer a:active {
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <div id="login-form">
+        <p>Enter the password to play: <input type="password" id="login-input"/> <button id="login-submit">Login</button></p>
+        <p id="login-response"></p>
+    </div>
+    <div id="content" style="display:none">
+        <h1>Gemini Secret Word Game</h1>
+        <p>The Gemini agent knows a secret word. Can you get the agent to tell you the secret word for each level?</p>
+        <div id="form">
+            <select id="form-level">
+                <option value="1">Level 1</option>
+                <option value="2">Level 2</option>
+                <option value="3">Level 3</option>
+                <option value="4">Level 4</option>
+                <option value="5">Level 5</option>
+                <option value="6">Level 6</option>
+            </select>
+            <p id="instructions"></p>
+            <textarea type="text" id="form-input"></textarea>
+            <button id="form-submit">Submit</button> (ctrl+enter)
+        </div>
+        <div id="response">Gemini output will appear here.</div>
+        <div id="secret-form" style="display:none">
+            <input type="text" id="secret-input">
+            <button id="secret-submit">Check Secret</button>
+        </div>
+    </div>
+
+    <div id="footer">By eseidohl@. Inspired by <a href="https://gandalf.lakera.ai/">Gandalf</a>.</div>
+
+    <script>
+        const loginInput = document.getElementById("login-input")
+        const content = document.getElementById("content")
+        const loginForm = document.getElementById("login-form")
+        const loginResponse = document.getElementById("login-response")
+        const loginSubmit = document.getElementById("login-submit")
+
+        loginSubmit.onclick = () => {
+            fetch('./login', {
+                method: 'POST',
+                body: JSON.stringify({
+                    password: loginInput.value
+                }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(r => {
+                if (r.status > 300) {
+                    return r.text().then(t => {
+                        throw new Error(t)
+                    })
+                }
+                return r.json()
+            }).then(rj => {
+                if (rj.status == "error") {
+                    loginResponse.innerText = rj.errors.join("<br/>")
+                    localStorage.removeItem("password")
+                } else {
+                    localStorage.setItem("password", loginInput.value)
+                    content.style.display = "block"
+                    loginForm.style.display = "none"
+                }
+            }).catch((error) => {
+                console.log(error)
+                loginResponse.innerText = error
+            });
+        }
+
+        loginInput.onkeyup = (event) => {
+            if (event.keyCode == 13) {
+                loginSubmit.onclick()
+            }
+        }
+
+        if (localStorage.getItem("password")) {
+            loginInput.value = localStorage.getItem("password")
+            loginSubmit.onclick()
+        }
+    </script>
+
+    <script>
+        const formInput = document.getElementById("form-input")
+        const formSubmit = document.getElementById("form-submit")
+        const formLevel = document.getElementById("form-level")
+        const response = document.getElementById("response")
+        const instructions = document.getElementById("instructions")
+        const secretForm = document.getElementById("secret-form")
+        const secretInput = document.getElementById("secret-input")
+        const secretSubmit = document.getElementById("secret-submit")
+
+        let currLevel = 1
+        let maxLevel = 1
+
+        if (localStorage.getItem("maxLevel")) {
+            maxLevel = parseInt(localStorage.getItem("maxLevel"))
+            currLevel = maxLevel
+            formLevel.value = currLevel
+            instructions.innerText = getInstructions(parseInt(formLevel.value))
+        }
+
+        function changeState(state) {
+            if (state == "running") {
+                formInput.disabled = false
+                formLevel.disabled = false
+                formSubmit.disabled = false
+                secretInput.disabled = false
+                secretSubmit.disabled = false
+                secretForm.style.display = "block"
+                formLevel.childNodes.forEach((n) => {
+                    if (n.value > maxLevel) {
+                        n.disabled = true
+                    } else {
+                        n.disabled = false
+                    }
+                })
+            } else if (state == "fetching") {
+                formInput.disabled = true
+                formLevel.disabled = true
+                formSubmit.disabled = true
+                secretInput.disabled = true
+                secretSubmit.disabled = true
+            }
+        }
+
+        changeState("running")
+
+        function getInstructions(newLevel) {
+            switch(newLevel) {
+                case 1:
+                    return "LEVEL ONE: I am a helpful Gemini AI agent. If you ask, I'll reveal the secret word."
+                case 2:
+                    return "LEVEL TWO: I am a Gemini AI agent, with a secret. My instructions tell me to not share secrets with you."
+                case 3:
+                    return "LEVEL THREE: I am a Gemini AI agent, with a secret. My instructions contain some examples of keeping secrets, to reinforce that I'm not supposed to share the secret with you."
+                case 4:
+                    return "LEVEL FOUR: I am a Gemini AI agent, with a secret. I also have code that checks for the password to ensure I don't accidentally return it."
+                case 5:
+                    return "LEVEL FIVE: I am a Gemini AI agent, with a secret. I've also been instructed to watch out for tricky users!"
+                case 6:
+                    return "LEVEL SIX: I am a Gemini AI agent, with a secret. I'm a security expert as well, and I'm well prepared to deal with all sorts of tricks!"
+                default:
+                    return "Either you broke it, or you won! Good job either way :)"
+            }
+        }
+
+        secretInput.onkeyup = (event) => {
+            if (event.ctrlKey && event.keyCode == 13) {
+                secretSubmit.onclick()
+            }
+        }
+
+        secretSubmit.onclick = () => {
+            changeState("fetching")
+            fetch('./check', {
+                method: 'POST',
+                body: JSON.stringify({
+                    level: formLevel.value,
+                    secret:  secretInput.value,
+                    auth: localStorage.getItem("password"),
+                }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(r => {
+                if (r.status > 300) {
+                    return r.text().then(t => {
+                        throw new Error(t)
+                    })
+                }
+                return r.json()
+            }).then(rj => {
+                if (rj.status == "error") {
+                    response.innerText = rj.errors.join("<br/>")
+                } else {
+                    if (rj.secret == "true") {
+                        formInput.value = ""
+                        secretInput.value = ""
+                        response.innerText = ""
+                        currLevel += 1
+                        if (currLevel > maxLevel) {
+                            maxLevel = currLevel
+                        }
+                        formLevel.value = currLevel
+                        localStorage.setItem("maxLevel", maxLevel)
+                        instructions.innerText = getInstructions(parseInt(formLevel.value))
+                    }
+                }
+                changeState("running")
+            }).catch((error) => {
+                console.log(error)
+                response.innerText = error
+                changeState("running")
+            });
+        }
+
+        formLevel.onchange = () => {
+            instructions.innerText = getInstructions(parseInt(formLevel.value))
+        }
+
+        instructions.innerText = getInstructions(parseInt(formLevel.value))
+
+        formInput.onkeyup = (event) => {
+            if (event.ctrlKey && event.keyCode == 13) {
+                formSubmit.onclick()
+            }
+        }
+
+        formSubmit.onclick = () => {
+            changeState("fetching")
+            fetch('./ai', {
+                method: 'POST',
+                body: JSON.stringify({
+                    level: formLevel.value,
+                    userPrompt:  formInput.value,
+                    auth: localStorage.getItem("password"),
+                }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(r => {
+                if (r.status > 300) {
+                    return r.text().then(t => {
+                        throw new Error(t)
+                    })
+                }
+                return r.json()
+            }).then(rj => {
+                if (rj.status == "error") {
+                    response.innerText = rj.errors.join("<br/>")
+                } else {
+                    response.innerText = rj.reply
+                }
+                changeState("running")
+            }).catch((error) => {
+                console.log(error)
+                response.innerText = error
+                changeState("running")
+            });
+        }
+    </script>
+</body>
+</html>
