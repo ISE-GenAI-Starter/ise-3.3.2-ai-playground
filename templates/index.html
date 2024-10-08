@@ -230,7 +230,9 @@
                         }
                         formLevel.value = currLevel
                         localStorage.setItem("maxLevel", maxLevel)
-                        instructions.innerText = getInstructions(parseInt(formLevel.value))
+                        instructions.innerText = getInstructions(currLevel)
+                    } else {
+                        response.innerText = "Nope, that wasn't it!"
                     }
                 }
                 changeState("running")
@@ -242,6 +244,7 @@
         }
 
         formLevel.onchange = () => {
+            currLevel = parseInt(formLevel.value)
             instructions.innerText = getInstructions(parseInt(formLevel.value))
         }
 

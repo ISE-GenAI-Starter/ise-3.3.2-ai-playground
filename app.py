@@ -79,7 +79,7 @@ def check():
     if errors:
         return json.dumps({"status": "error", "errors": errors})
     else:
-        return json.dumps({"status": "success", "secret": "true" if secret == PASSWORDS[level - 1] else "false"})
+        return json.dumps({"status": "success", "secret": "true" if secret.upper() == PASSWORDS[level - 1] else "false"})
 
 
 @app.route('/ai', methods=['POST'])
@@ -104,6 +104,8 @@ def ai():
         errors.append('level is required.')
     try:
         userPrompt = data.get('userPrompt')
+        if len(userPrompt) > 1000:
+            errors.append('userPrompt must be less than 1000 characters.')
     except KeyError:
         errors.append('userPrompt is required.')
 
