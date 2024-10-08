@@ -8,6 +8,7 @@ from flask import Flask, render_template, request
 
 from ai import get_chat_reply, PASSWORDS
 
+# Load .env file for local development
 from dotenv import load_dotenv
 load_dotenv()
 
