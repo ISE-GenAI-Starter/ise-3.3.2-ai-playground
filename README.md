@@ -3,11 +3,11 @@ For ISE 3.3.2 - AI Playground in-class activity
 
 ## Note
 
-```bash
-# Don't copy this one into your yearly github repo!
 
-# Instead, make sure there is a copy deployed and running somewhere before class, that you can link the students to.
-```
+### Don't copy this one into your yearly github repo!
+
+### Instead, make sure there is a copy deployed and running somewhere before class, that you can link the students to.
+
 
 Setup:
 
