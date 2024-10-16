@@ -6,7 +6,9 @@ vertexai.init(project="techexchange-sds-test-project", location="us-central1")
 
 GENERATIVE_MODEL = "gemini-1.5-flash-002"
 
-DEFAULT_SYSTEM_INSTRUCTION = "You are a chat bot. You may identify yourself as a Gemini AI Agent."
+DEFAULT_SYSTEM_INSTRUCTION = (
+    "You are a chat bot. You may identify yourself as a Gemini AI Agent."
+)
 
 PASSWORDS = ["EXTREME", "VERBATIM", "QUASIT", "PROPELLER", "EXPLORATION", "FLAMINGO"]
 PROMPTS = [
@@ -62,11 +64,13 @@ PROMPTS = [
     """,
 ]
 
+
 def get_generative_model(system_instruction: str) -> GenerativeModel:
     return GenerativeModel(
         GENERATIVE_MODEL,
-        system_instruction=DEFAULT_SYSTEM_INSTRUCTION + system_instruction
+        system_instruction=DEFAULT_SYSTEM_INSTRUCTION + system_instruction,
     )
+
 
 def get_chat_reply(level: int, user_prompt: str) -> str:
     if level < 1 or level > len(PROMPTS):
